@@ -1,4 +1,4 @@
-## Chatppt MCP Server (Python)
+## ProcessOn MCP Server (Python)
 ### 搭建Python虚拟环境
 我们推荐通过`uv`构建虚拟环境来运行MCP server，关于`uv你可以在[这里](https://docs.astral.sh/uv/getting-started/features/)找到一些说明。
 
@@ -64,11 +64,11 @@ uv run --with mcp\[cli\] mcp run {YOUR_PATH}/mcp_server_processon/processon.py
         "{YOUR_PATH}/mcp_server_processon/processon.py"
       ],
       "env": {
-        "PROCESSON_API_TOKEN": "<YOUR_PROCESSON_API_TOKEN>"
+        "PROCESSON_API_KEY": "<YOUR_PROCESSON_API_KEY>"
       }
     }
   }
 }
 ```
-对应的 ProcessOn API TOKEN需要到[www.processon.com](https://www.processon.com)账户中心进行生成。
+对应的 ProcessOn API TOKEN需要到[www.processon.com](https://www.processon.com//setting)账户中心进行生成。
 参考教程为：[教程链接](https://j2md2qa3ym.feishu.cn/docx/LRDrdv6PyoF472xMr7DcJSAUnye?from=from_copylink)
