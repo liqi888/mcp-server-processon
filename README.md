@@ -15,7 +15,6 @@ uv add "mcp[cli]"
 uv run mcp
 ```
 
-当出现下图时代表安装成功
 
 
 通过`uv`安装`python`，最低版本要求为3.11
@@ -33,7 +32,7 @@ uv python install 3.11
 uv init mcp_server
 ```
 
-将`chatppt.py`拷贝到该目录下，通过如下命令测试mcp server是否正常运行
+将`processon.py`拷贝到该目录下，通过如下命令测试mcp server是否正常运行
 
 ```bash
 uv run --with mcp[cli] mcp run {YOUR_PATH}/mcp_server_processon/processon.py
@@ -42,6 +41,39 @@ uv run --with mcp\[cli\] mcp run {YOUR_PATH}/mcp_server_processon/processon.py
 ```
 
 如果没有报错则MCP Server启动成功
+
+
+### 在 Cherry Studio 中使用
+
+打开`Cherry Studio`，左下角的`设置`，选择`MCP服务器`，右上角`添加服务器`，选择`从JSON导入`
+
+在文件中添加如下内容后保存
+
+```json
+{
+  "mcpServers": {
+    "processon": {
+      "isActive": false,
+      "name": "ProcessOn",
+      "type": "stdio",
+      "description": "ProcessOn创建文件工具",
+      "registryUrl": "",
+      "command": "uv",
+      "args": [
+        "run",
+        "--with",
+        "mcp[cli]",
+        "mcp",
+        "run",
+        "{YOUR_PATH}/mcp_server_processon/processon.py"
+      ],
+      "env": {
+        "PROCESSON_API_KEY": "<{YOUR_PROCESSON_API_KEY}>"
+      }
+    }
+  }
+}
+```
 
 ### 在Cursor中使用
 
@@ -53,7 +85,7 @@ uv run --with mcp\[cli\] mcp run {YOUR_PATH}/mcp_server_processon/processon.py
 ```json
 {
   "mcpServers": {
-    "chatppt": {
+    "processon": {
       "command": "uv",
       "args": [
         "run",
@@ -71,4 +103,3 @@ uv run --with mcp\[cli\] mcp run {YOUR_PATH}/mcp_server_processon/processon.py
 }
 ```
 对应的 ProcessOn API TOKEN需要到[www.processon.com](https://www.processon.com//setting)账户中心进行生成。
-参考教程为：[教程链接](https://j2md2qa3ym.feishu.cn/docx/LRDrdv6PyoF472xMr7DcJSAUnye?from=from_copylink)
