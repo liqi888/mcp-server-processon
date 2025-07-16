@@ -1,6 +1,6 @@
 {
-  "name": "@processon/mcp-server-processon",
-  "version": "1.0.6",
+  "name": "mcp-server-processon",
+  "version": "1.0.3",
   "description": "ProcessOn Markdown 思维导图生成工具",
   "bin": {
     "mcp-server-processon": "./bin/cli.js"

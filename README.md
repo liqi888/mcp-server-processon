@@ -1,4 +1,4 @@
-# @processon/mcp-server-processon
+# mcp-server-processon
 
 🚀 基于 MCP 协议的 Markdown → ProcessOn 思维导图生成工具。
 
@@ -24,7 +24,7 @@
 ### ✅ 方式一：使用 `npx`（推荐）
 
 ```bash
-npx @processon/mcp-server-processon
+npx mcp-server-processon
 ```
 
 
@@ -33,7 +33,7 @@ npx @processon/mcp-server-processon
 ### ✅ 方式二：全局安装
 
 ```bash
-npm install -g @processon/mcp-server-processon
+npm install -g mcp-server-processon
 ```
 
 运行服务：
@@ -80,7 +80,7 @@ $env:PROCESSON_API_KEY="YOU PROCESSON_API_KEY"
 ### 启动服务
 
 ```bash
-npx @processon/mcp-server-processon
+npx mcp-server-processon
 ```
 
 或（已全局安装）：
@@ -96,7 +96,7 @@ mcp-server-processon
 ### 查看版本
 
 ```bash
-npx @processon/mcp-server-processon --version
+npx mcp-server-processon --version
 ```
 
 ---
@@ -213,7 +213,7 @@ python processon.py --transport stdio
   "registryUrl": "",
   "command": "npx",
   "args": [
-    "@processon/mcp-server-processon"
+    "mcp-server-processon"
   ],
   "env": {
     "PROCESSON_API_KEY": "{YOU PROCESSON_API_KEY}"
