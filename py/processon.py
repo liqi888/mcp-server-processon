@@ -31,17 +31,13 @@ BASE_URL = os.getenv('BASE_URL')
 if BASE_URL:
     API_BASE = BASE_URL
 
-# 用户apiKey
-PROCESSON_API_KEY = os.getenv('PROCESSON_API_KEY')
-
-
 class ImportRequest(BaseModel):
     """思维导图导入请求模型"""
-    file_name: str = Field(description="文件名称")
+    title: str = Field(description="文件名称")
     content: str = Field(description="markdown形式的内容")
 
-    @validator('file_name')
-    def validate_file_name(cls, value):
+    @validator('title')
+    def validate_title(cls, value):
         if not value.strip():
             raise ValueError("文件名称不能为空")
         return value
@@ -52,9 +48,10 @@ def check_api_key() -> str:
     检查 PROCESSON_API_KEY 是否已设置
     :return: API KEY
     """
-    if not PROCESSON_API_KEY:
+    api_key = os.getenv('PROCESSON_API_KEY')
+    if not api_key:
         raise ValueError("PROCESSON_API_KEY 环境变量未设置")
-    return PROCESSON_API_KEY
+    return api_key
 
 
 def generate_random_id():
@@ -151,14 +148,13 @@ def encode_mind(markdown_content: str) -> str:
 @mcp.tool()
 async def check() -> str:
     """查询用户当前配置apiKey"""
-    #return os.getenv('PROCESSON_API_KEY')
-    return API_BASE + ":" + PROCESSON_API_KEY
-
+    api_key = check_api_key()
+    return API_BASE + ":" + api_key
 
 # 创建思维导图
 @mcp.tool()
 async def createProcessOnMind(
-        file_name: str = Field(description="文件名称"),
+        title: str = Field(description="文件名称"),
         content: str = Field(description="markdown形式的内容"),
 ) -> Dict[str, Any]:
     """
@@ -166,7 +162,7 @@ async def createProcessOnMind(
     """
     try:
         # 参数校验
-        request = ImportRequest(file_name=file_name, content=content)
+        request = ImportRequest(title=title, content=content)
 
         # 对用户输入的内容进行URL转码处理
         encoded_content = encode_mind(request.content)
@@ -179,7 +175,7 @@ async def createProcessOnMind(
             'file_type': '',
             'folder': 'root',  # 目标文件夹ID
             'category': 'mind',
-            'file_name': request.file_name,
+            'file_name': request.title,
             'def': encoded_content  # 使用转码后的内容
         }
 

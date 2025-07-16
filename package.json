@@ -1,11 +1,13 @@
 {
   "name": "@processon/mcp-server-processon",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "ProcessOn Markdown 思维导图生成工具",
   "bin": {
     "mcp-server-processon": "./bin/cli.js"
   },
-  "scripts": {},
+  "scripts": {
+    "postinstall": "echo 'Python 环境和依赖会在第一次运行时自动安装。'"
+  },
   "keywords": ["mcp", "processon", "mindmap"],
   "author": "琪天大圣",
   "license": "MIT",
