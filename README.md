@@ -232,7 +232,6 @@ mcp-server-processon/
 ├── py/
 │   └── processon.py        # Python 实现的 MCP Server
 ├── requirements.txt        # Python 依赖清单
-├── pyproject.toml          # 可选，用于 Poetry
 ├── package.json            # npm 包配置
 └── README.md               # 使用说明文档
 ```
