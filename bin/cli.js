@@ -27,7 +27,7 @@ function findPythonCommand() {
 }
 
 function installPythonDeps(pythonCmd) {
-    const reqFile = path.join(__dirname, '../py/requirements.txt');
+    const reqFile = path.join(__dirname, '../requirements.txt');
 
     console.log(`Using Python command: ${pythonCmd}`);
     console.log('Checking and installing Python dependencies...');

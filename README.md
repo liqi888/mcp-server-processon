@@ -176,11 +176,12 @@ npx @processon/mcp-server-processon --version
 - [`httpx`](https://www.python-httpx.org/) >= 0.24.0
 - [`pydantic`](https://docs.pydantic.dev/) >= 1.10.0
 - [`fastmcp`](https://github.com/lqez/mcp) >= 0.1.3
+- 更多依赖包请参考requirements.txt文件
 
 如需手动安装：
 
 ```bash
-pip install -r py/requirements.txt
+pip install -r requirements.txt
 ```
 
 ---
