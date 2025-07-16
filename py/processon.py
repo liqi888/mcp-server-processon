@@ -172,7 +172,7 @@ async def createProcessOnMind(
 
         url = f"{API_BASE}/api/activity/mcp/chart/create/mind"
         request_data = {
-            'file_type': '',
+            'file_type': 'mind',
             'folder': 'root',  # 目标文件夹ID
             'category': 'mind',
             'file_name': request.title,
@@ -196,10 +196,21 @@ async def createProcessOnMind(
 
             code = result.get("code") or result.get("result", {}).get("code")
             msg = result.get("msg") or result.get("result", {}).get("msg")
-            chartId = result.get("data", {}).get("chartId") or result.get("result", {}).get("data", {}).get("chartId")
+            data = result.get("data") or result.get("result", {}).get("data")
+
+            chartId = None
+            if isinstance(data, dict):
+                chartId = data.get("chartId")
+            elif isinstance(data, str):
+                chartId = data
+            else:
+                logger.warning(f"data字段类型异常: {type(data)}, 内容: {data}")
 
             if not chartId:
-                raise Exception("未从返回结果中提取到 chartId")
+                # 将完整返回结果记录下来，方便模型/用户排查
+                logger.error(f"API调用成功，但未提取到chartId，返回内容: {json.dumps(result, ensure_ascii=False)}")
+                raise Exception(f"API返回格式异常，未提取到chartId。完整返回内容: {json.dumps(result, ensure_ascii=False)}")
+
 
             fileUrl = f"{API_BASE}/mindmap/{chartId}"
             logger.info(f"文件地址: {fileUrl}")
