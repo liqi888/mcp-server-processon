@@ -1,0 +1,31 @@
+{
+  "name": "@processon/mcp-server-processon",
+  "version": "1.0.9",
+  "description": "ProcessOn Markdown 思维导图生成工具",
+  "bin": {
+    "mcp-server-processon": "./bin/cli.js"
+  },
+  "scripts": {
+    "postinstall": "echo 'Python 环境和依赖会在第一次运行时自动安装。'"
+  },
+  "keywords": ["mcp", "processon", "mindmap"],
+  "author": "琪天大圣",
+  "license": "MIT",
+  "files": [
+    "bin/",
+    "py/",
+    "requirements.txt"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/liqi888/mcp-server-processon.git"
+  },
+  "homepage": "https://github.com/liqi888/mcp-server-processon#readme",
+  "bugs": {
+    "url": "https://github.com/liqi888/mcp-server-processon/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {}
+}

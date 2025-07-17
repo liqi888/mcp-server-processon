@@ -31,17 +31,13 @@ BASE_URL = os.getenv('BASE_URL')
 if BASE_URL:
     API_BASE = BASE_URL
 
-# 用户apiKey
-PROCESSON_API_KEY = os.getenv('PROCESSON_API_KEY')
-
-
 class ImportRequest(BaseModel):
     """思维导图导入请求模型"""
-    file_name: str = Field(description="文件名称")
+    title: str = Field(description="文件名称")
     content: str = Field(description="markdown形式的内容")
 
-    @validator('file_name')
-    def validate_file_name(cls, value):
+    @validator('title')
+    def validate_title(cls, value):
         if not value.strip():
             raise ValueError("文件名称不能为空")
         return value
@@ -52,56 +48,83 @@ def check_api_key() -> str:
     检查 PROCESSON_API_KEY 是否已设置
     :return: API KEY
     """
-    if not PROCESSON_API_KEY:
+    api_key = os.getenv('PROCESSON_API_KEY')
+    if not api_key:
         raise ValueError("PROCESSON_API_KEY 环境变量未设置")
-    return PROCESSON_API_KEY
-
+    return api_key
 
 def generate_random_id():
     return str(uuid.uuid4())[:20]  # ProcessOn的ID通常是20位字符
 
-def parse_headings_to_tree(lines):
+def parse_content_to_tree(lines):
     """
-    解析 ## ~ ###### 标题为树结构，# 标题不处理（用于 root title）
+    解析Markdown内容为树结构，支持标题(## ~ ######)和列表项(-)
     """
     stack = []
     virtual_root = {"id": "virtual-root", "children": [], "depth": 0}
+    current_parent = virtual_root
+    last_level = 1  # 默认从1开始
 
     for line in lines:
-        match = re.match(r'^(#{2,6})\s+(.*)', line.strip())  # 只处理 ## 到 ###### 的标题
-        if not match:
+        line = line.strip()
+        if not line:
             continue
 
-        level = len(match.group(1))
-        title = match.group(2).strip()
+        # 处理标题
+        heading_match = re.match(r'^(#{2,6})\s+(.*)', line)
+        if heading_match:
+            level = len(heading_match.group(1))
+            title = heading_match.group(2).strip()
 
-        node = {
-            "id": generate_random_id(),
-            "title": title,
-            "depth": level,
-            "children": []
-        }
+            node = {
+                "id": generate_random_id(),
+                "title": title,
+                "depth": level,
+                "children": []
+            }
 
-        # 找到当前标题应挂靠的父节点
-        while stack and stack[-1]["depth"] >= level:
-            stack.pop()
+            # 找到当前标题应挂靠的父节点
+            while stack and stack[-1]["depth"] >= level:
+                stack.pop()
 
-        parent = stack[-1] if stack else virtual_root
-        parent["children"].append(node)
-        stack.append(node)
+            parent = stack[-1] if stack else virtual_root
+            parent["children"].append(node)
+            stack.append(node)
+            current_parent = node
+            last_level = level
+            continue
+
+        # 处理列表项
+        list_match = re.match(r'^-\s+(.*)', line)
+        if list_match:
+            content = list_match.group(1).strip()
+
+            node = {
+                "id": generate_random_id(),
+                "title": content,
+                "depth": last_level + 1,  # 列表项比当前标题低一级
+                "children": []
+            }
+
+            current_parent["children"].append(node)
+            continue
+
+        # 处理其他内容（可以作为当前节点的补充说明）
+        if stack and current_parent:
+            current_parent["title"] += "\n" + line
 
     return virtual_root["children"]
 
-# 格式化Markdown内容，转换为思维导图问文件定义类型
 def encode_mind(markdown_content: str) -> str:
     """
-    支持符合 ProcessOn 树格式的 Markdown 思维导图（根节点为 # 标题，不作为 children）
+    支持符合ProcessOn树格式的Markdown思维导图
+    现在支持标题(## ~ ######)和列表项(-)
     """
-    lines = [line.strip() for line in markdown_content.split('\n') if line.strip()]
+    lines = [line for line in markdown_content.split('\n') if line.strip()]
     if not lines:
         raise ValueError("Markdown内容不能为空")
 
-    # 取首个 # 作为根标题
+    # 取首个#作为根标题
     root_title = "未命名思维导图"
     content_lines = []
 
@@ -112,7 +135,7 @@ def encode_mind(markdown_content: str) -> str:
             content_lines.append(line)
 
     # 构建子树结构
-    children = parse_headings_to_tree(content_lines)
+    children = parse_content_to_tree(content_lines)
 
     # 思维导图主题配置
     base_theme = {
@@ -134,7 +157,7 @@ def encode_mind(markdown_content: str) -> str:
         "colorMinorId": "mind-style1"
     }
 
-    # 构建思维导图 JSON
+    # 构建思维导图JSON
     flow_structure = {
         "root": "true",
         "showWatermark": False,
@@ -148,25 +171,25 @@ def encode_mind(markdown_content: str) -> str:
 
     return json.dumps(flow_structure, ensure_ascii=False)
 
+
 @mcp.tool()
 async def check() -> str:
     """查询用户当前配置apiKey"""
-    #return os.getenv('PROCESSON_API_KEY')
-    return API_BASE + ":" + PROCESSON_API_KEY
-
+    api_key = check_api_key()
+    return API_BASE + ":" + api_key
 
 # 创建思维导图
 @mcp.tool()
 async def createProcessOnMind(
-        file_name: str = Field(description="文件名称"),
+        title: str = Field(description="文件名称"),
         content: str = Field(description="markdown形式的内容"),
 ) -> Dict[str, Any]:
     """
-    思维导图生成。创建思维导图时调用：根据markdown内容创建思维导图并返回ProcessOn文件链接。
+    创建（生成）思维导图。创建ProcessOn思维导图时调用：根据markdown内容创建思维导图并返回ProcessOn文件链接。
     """
     try:
         # 参数校验
-        request = ImportRequest(file_name=file_name, content=content)
+        request = ImportRequest(title=title, content=content)
 
         # 对用户输入的内容进行URL转码处理
         encoded_content = encode_mind(request.content)
@@ -176,10 +199,10 @@ async def createProcessOnMind(
 
         url = f"{API_BASE}/api/activity/mcp/chart/create/mind"
         request_data = {
-            'file_type': '',
+            'file_type': 'mind',
             'folder': 'root',  # 目标文件夹ID
             'category': 'mind',
-            'file_name': request.file_name,
+            'file_name': request.title,
             'def': encoded_content  # 使用转码后的内容
         }
 
@@ -198,22 +221,39 @@ async def createProcessOnMind(
             result = response.json()
             logger.info(f"API调用成功，返回结果: {result}")
 
-            code = result.get("code") or result.get("result", {}).get("code")
-            msg = result.get("msg") or result.get("result", {}).get("msg")
-            chartId = result.get("data", {}).get("chartId") or result.get("result", {}).get("data", {}).get("chartId")
+            code = result.get("code")
+            msg = result.get("msg", "未知错误")
+            data = result.get("data", {})
 
-            if not chartId:
-                raise Exception("未从返回结果中提取到 chartId")
+            # code == "200" 时成功
+            if code == "200":
+                chart_id = data.get("chartId")
+                if not chart_id:
+                    raise ValueError("接口返回成功但缺少 chartId 字段")
 
-            fileUrl = f"{API_BASE}/mindmap/{chartId}"
-            logger.info(f"文件地址: {fileUrl}")
+                file_url = f"{API_BASE}/mindmap/{chart_id}"
+                logger.info(f"文件链接: {file_url}")
 
-            return {
-                "code": code,
-                "msg": msg,
-                "chartId": chartId,
-                "fileUrl": fileUrl
-            }
+                return {
+                    "code": code,
+                    "msg": "思维导图创建成功",
+                    "chartId": chart_id,
+                    "fileUrl": file_url
+                }
+            else:
+                logger.warning(f"思维导图创建失败，错误信息: {msg}")
+
+                if code == "815":
+                    msg = msg + '，请到[www.processon.com]升级会员后再使用！'
+                if code == "401":
+                    msg = msg + '，请检查PROCESSON_API_KEY配置是否正确！'
+
+                # 返回错误信息供大模型使用
+                return {
+                    "code": code,
+                    "msg": f"思维导图创建失败：{msg}",
+                    "ok": False
+                }
 
     except ImportRequest.ValidationError as e:
         logger.error(f"参数验证失败: {str(e)}")
