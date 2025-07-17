@@ -221,33 +221,39 @@ async def createProcessOnMind(
             result = response.json()
             logger.info(f"API调用成功，返回结果: {result}")
 
-            code = result.get("code") or result.get("result", {}).get("code")
-            msg = result.get("msg") or result.get("result", {}).get("msg")
-            data = result.get("data") or result.get("result", {}).get("data")
+            code = result.get("code")
+            msg = result.get("msg", "未知错误")
+            data = result.get("data", {})
 
-            chartId = None
-            if isinstance(data, dict):
-                chartId = data.get("chartId")
-            elif isinstance(data, str):
-                chartId = data
+            # code == "200" 时成功
+            if code == "200":
+                chart_id = data.get("chartId")
+                if not chart_id:
+                    raise ValueError("接口返回成功但缺少 chartId 字段")
+
+                file_url = f"{API_BASE}/mindmap/{chart_id}"
+                logger.info(f"文件链接: {file_url}")
+
+                return {
+                    "code": code,
+                    "msg": "思维导图创建成功",
+                    "chartId": chart_id,
+                    "fileUrl": file_url
+                }
             else:
-                logger.warning(f"data字段类型异常: {type(data)}, 内容: {data}")
+                logger.warning(f"思维导图创建失败，错误信息: {msg}")
 
-            if not chartId:
-                # 将完整返回结果记录下来，方便模型/用户排查
-                logger.error(f"API调用成功，但未提取到chartId，返回内容: {json.dumps(result, ensure_ascii=False)}")
-                raise Exception(f"API返回格式异常，未提取到chartId。完整返回内容: {json.dumps(result, ensure_ascii=False)}")
+                if code == "815":
+                    msg = msg + '，请到[www.processon.com]升级会员后再使用！'
+                if code == "401":
+                    msg = msg + '，请检查PROCESSON_API_KEY配置是否正确！'
 
-
-            fileUrl = f"{API_BASE}/mindmap/{chartId}"
-            logger.info(f"文件地址: {fileUrl}")
-
-            return {
-                "code": code,
-                "msg": msg,
-                "chartId": chartId,
-                "fileUrl": fileUrl
-            }
+                # 返回错误信息供大模型使用
+                return {
+                    "code": code,
+                    "msg": f"思维导图创建失败：{msg}",
+                    "ok": False
+                }
 
     except ImportRequest.ValidationError as e:
         logger.error(f"参数验证失败: {str(e)}")
